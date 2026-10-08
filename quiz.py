@@ -1,13 +1,4 @@
-class UserInfo: 
-    def __init__(self, name = ""): 
-        self.name = name
-        self.score = 0
-
-    def reset_score(self):
-        self.score = 0
-
-    def add_point(self):
-        self.score += 1
+import random
 
 question = [
     {
@@ -36,8 +27,24 @@ question = [
         "answer": "a",
     },
 ]
+class UserInfo: 
+    def __init__(self, name = ""): 
+        self.name = name
+        self.score = 0
+        self.best_score = 0
 
-def getUserName():
+    def reset_score(self):
+        self.score = 0
+
+    def add_point(self):
+        self.score += 1
+
+    def update_best(self):
+        if self.score > self.best_score:
+            self.best_score = self.score
+
+
+def getUserName() -> str:
     while True:
         input_name = input("Hello What's your name?").strip()
         if len(input_name) == 0:
@@ -47,7 +54,7 @@ def getUserName():
         else:
             return input_name
 
-def askRegister(): 
+def askRegister() -> bool: 
     while True:
         register = input('Do you want a register? (yes/no)').lower().strip()
 
@@ -58,10 +65,12 @@ def askRegister():
         else:
             print('Pilih Jawaban yes / no')
 
-def runQuiz(user):
+def runQuiz(user: UserInfo) -> None:
     user.reset_score()
+    soal = question[:]
+    random.shuffle(soal)
 
-    for i, q in enumerate(question, start=1):
+    for i, q in enumerate(soal, start=1):
         print(f"\n{i}. {q['question']}")
         for opt in q["options"]:
             print(f"   {opt}")
@@ -76,15 +85,23 @@ def runQuiz(user):
             print(f"Salah, jawaban benar: {q['answer']}")
 
 
-def showResult(user):
+def showResult(user: UserInfo) -> None:
     total = len(question)
-    print(f"\nHELLO {user.name}, skor kamu: {user.score}/{total}")
+    user.update_best()
+    print(f"\nHELLO {user.name}, skor: {user.score}/{total} | terbaik: {user.best_score}/{total}")
+    if user.score == total:
+        print("Sempurna! GG")
+    elif user.score >= total // 2 + 1:
+        print("Bagus, dikit lagi sempurna!")
+    else:
+        print("Belajar lagi yuk!")
 
-def startGame(user):    
+
+def startGame(user: UserInfo) -> None:    
     print(f'HELLO {user.name} do you ready to playing?')    
 
 
-def __main__(): 
+def __main__() -> None: 
     if not askRegister():
         print('Oke Thank you')
         return
@@ -94,13 +111,14 @@ def __main__():
     while True:
         runQuiz(user)
         showResult(user)
-        again = input('Do You want to play again?').lower().strip()
-
-        if again not in ('yes', 'y'):
-            print(f'Oke Bye {user.name}')
+        lagi = input("Main lagi? (yes/no): ").lower().strip()
+        if lagi not in ("yes", "y", "no", "n"):
+            print("Anggap selesai ya")
             break
+        if lagi in ("no", "n"):
+            print(f"Oke bye {user.name}!")
+            break
+
 
 if __name__ == "__main__":
     __main__()
-    
-        
