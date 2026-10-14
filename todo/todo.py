@@ -25,6 +25,102 @@ def search_todo(keyword):
         print(f"{status} [{todo['id']}] {todo['title']}")
     print()
 
+def unmark_completed(id_todos):
+    todos = load_todos()
+    for todo in todos:
+        if todo["id"] == id_todos:
+                todo["completed"] = False
+                save_todos(todos)
+                print(f"✓ Marked as incomplete: {todo['title']}")
+                return
+    print(f"Todo with id {id_todos} not found")
+
+
+
+def edit_todo(id_todos):
+    todos = load_todos()
+    for todo in todos:
+        if todo["id"] == id_todos:
+            print(f"Editing: {todo['title']}")
+            new_title = input("Enter New Title").strip()
+            if new_title:
+                todo["title"] = new_title
+
+            new_priority = input("New priority (high/medium/low, press Enter to skip): ").strip().lower()
+            if new_priority in ["high", "medium", "low"]:
+                todo["priority"] = new_priority
+
+            new_due_date = input("New due date (YYYY-MM-DD, press Enter to skip): ").strip()
+            if new_due_date:
+                try:
+                    datetime.strptime(new_due_date, "%Y-%m-%d")
+                    todo["due_date"] = new_due_date
+                except ValueError:
+                    print("Invalid date format")
+            save_todos(todos)
+            print(f"✓ Todo updated")
+            return
+    print(f"Todo with id {id_todos} not found")
+
+def view_incomplete_todos():
+    todos = load_todos()
+    incomplete = [t for t in todos if not t["completed"]]
+
+    if not incomplete:
+        print("No incomplete todos!")
+        return
+
+    print("\n--- Incomplete Todos ---")
+    for todo in incomplete:
+        priority = todo.get("priority", "medium")
+        due_date = todo.get("due_date", "")
+        due_info = f" | Due: {due_date}" if due_date else ""
+        print(f"○ [{todo['id']}] {todo['title']} | Priority: {priority.upper()}{due_info}")
+    print()
+
+
+def view_complete_todos():
+    todos = load_todos()
+    completed = [t for t in todos if t["completed"]]
+
+    if not completed:
+        print("No completed todos!")
+        return
+    
+    print("\n--- Completed Todos ---")
+    for todo in completed:
+        print(f"✓ [{todo['id']}] {todo['title']}")
+    print()
+
+def show_stats():
+    todos = load_todos()
+    total = len(todos)
+    completed = len([t for t in todos if t["completed"] ])
+    incomplete = total - completed
+    print(f"\n--- Todo Stats ---")
+    print(f"Total: {total}")
+    print(f"Completed: {completed}")
+    print(f"Incomplete: {incomplete}")
+    if total > 0:
+        percentage = (completed / total) * 100
+        print(f"Progress: {percentage:.1f}%")
+    print()
+
+
+def filter_category(category):
+    todos = load_todos()
+    results = [t for t in todos if t.get("category") == category]
+
+    if not results:
+        print(f"No todos with category '{category}'")
+        return
+    print(f"\n--- Todos in category: {category} ---")
+    
+    for todo in results:
+        status = "✓" if todo["completed"] else "○"
+        print(f"{status} [{todo['id']}] {todo['title']}")
+    print()
+
 def filter_by_priority(priority):
     todos = load_todos()
     results = [t for t in todos if t.get("priority", "medium") == priority]
@@ -135,10 +231,10 @@ def show_menu():
 def main(): 
     while True:
         show_menu()
-        choice = input("Choose An Option (1-5): ").lower().strip()
+        choice = input("Choose An Option (1-7): ").lower().strip()
 
         if choice == "1":
-            title = input("Enter A title").strip()
+            title = input("Enter A title: ").strip()
             if title:
                 add_todo(title)
             else:
@@ -148,21 +244,35 @@ def main():
         elif choice == "3":
             view_todos()
             try:
-                todo_id = int(input("Enter A id to Complete:"))
+                todo_id = int(input("Enter A id to Complete: "))
                 mark_completed(todo_id)
             except ValueError:
                 print("Invalid id")
 
         elif choice == "4":
             view_todos()
-
             try:
-                todo_id = int(input("Enter A id to delete:"))
+                todo_id = int(input("Enter A id to delete: "))
                 delete_todo(todo_id)
             except ValueError:
                 print("Invalid id")
 
         elif choice == "5":
+            keyword = input("Enter search keyword: ").strip()
+            if keyword:
+                search_todo(keyword)
+            else:
+                print("Keyword cannot be empty")
+        
+        elif choice == "6":
+            print("Priority levels: high, medium, low")
+            priority = input("Enter priority to filter: ").strip().lower()
+            if priority in ["high", "medium", "low"]:
+                filter_by_priority(priority)
+            else:
+                print("Invalid priority")
+
+        elif choice == "7":
             print("Goodbye!")
             break
         else: 
